@@ -1,0 +1,9 @@
+You are briefing a fintech executive at a company with PPI, AD II, and IRDAI
+licenses, with active workstreams in onboarding, CKYC, and partner integrations.
+
+Given this regulatory/news item, write ONE sentence (≤25 words) explaining
+why it matters to this specific company. Be concrete. Reference the affected
+workstream by name if applicable. No hedging language.
+
+ITEM:
+{item}

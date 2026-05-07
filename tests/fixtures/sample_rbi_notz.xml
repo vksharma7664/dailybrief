@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>RBI Press Releases (no-tz)</title>
+    <link>https://www.rbi.org.in</link>
+    <description>Simulates the actual RBI feed which omits timezone in pubDate</description>
+
+    <!-- RBI omits timezone — feedparser yields published_parsed=None -->
+    <item>
+      <title>RBI to conduct Variable Rate Repo auction on May 07</title>
+      <link>https://www.rbi.org.in/Scripts/BS_PressReleaseDisplay.aspx?prid=99999</link>
+      <description>The Reserve Bank of India will conduct a 4-day Variable Rate Repo auction under the Liquidity Adjustment Facility on May 07, 2026.</description>
+      <pubDate>Wed, 06 May 2026 19:05:00</pubDate>
+    </item>
+  </channel>
+</rss>

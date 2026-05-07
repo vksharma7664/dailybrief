@@ -1,0 +1,38 @@
+high_priority:   # boost score by 10 per match
+  # PPI / prepaid instruments
+  - PPI
+  - prepaid payment instrument
+  - prepaid instrument
+  # AD licence / foreign exchange
+  - AD II
+  - AD-II
+  - Authorised Dealer
+  - Authorised Dealer Category
+  - Authorised Persons
+  - FEMA
+  - Foreign Exchange Management
+  - A.P. (DIR Series)
+  - principal-agent model
+  - foreign exchange facility
+  # KYC
+  - CKYC
+  - central KYC
+  # Other business-critical
+  - FED segregation
+  - MCA
+  - sole proprietor onboarding
+  - authorised dealer category II
+
+medium_priority: # boost by 5 per match
+  - UPI
+  - KYC
+  - eKYC
+  - video KYC
+  - onboarding
+  - partner integration
+  - IRDAI
+  - HyperVerge
+
+exclude:         # drop items matching these
+  - cricket
+  - bollywood

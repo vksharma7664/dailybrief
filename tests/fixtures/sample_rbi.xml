@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>RBI Press Releases</title>
+    <link>https://www.rbi.org.in</link>
+    <description>Reserve Bank of India – Press Releases</description>
+
+    <!-- Recent item: within 24h, high-priority keyword PPI -->
+    <item>
+      <title>RBI issues updated guidelines on Prepaid Payment Instruments (PPI)</title>
+      <link>https://www.rbi.org.in/Scripts/BS_PressReleaseDisplay.aspx?prid=11111</link>
+      <description>The Reserve Bank of India today issued revised guidelines on Prepaid Payment Instruments (PPI) covering KYC requirements, interoperability mandates, and onboarding procedures for banks and non-banks operating under the AD II licence framework.</description>
+      <pubDate>Tue, 06 May 2025 05:30:00 +0000</pubDate>
+    </item>
+
+    <!-- Recent item: within 24h, medium-priority keyword UPI -->
+    <item>
+      <title>NPCI reports record UPI transaction volume in April 2025</title>
+      <link>https://www.rbi.org.in/Scripts/BS_PressReleaseDisplay.aspx?prid=22222</link>
+      <description>The National Payments Corporation of India announced that UPI transactions reached an all-time high of 14 billion in April 2025, reflecting strong adoption across merchant and P2P segments.</description>
+      <pubDate>Tue, 06 May 2025 03:00:00 +0000</pubDate>
+    </item>
+
+    <!-- Old item: outside 24h window — should be filtered out -->
+    <item>
+      <title>Reserve Bank releases Annual Report 2023-24</title>
+      <link>https://www.rbi.org.in/Scripts/AnnualReportPublications.aspx</link>
+      <description>The Reserve Bank of India today released its Annual Report for the year 2023-24.</description>
+      <pubDate>Mon, 28 Apr 2025 05:30:00 +0000</pubDate>
+    </item>
+
+    <!-- Excluded item: bollywood keyword -->
+    <item>
+      <title>Bollywood actor appointed as financial literacy ambassador</title>
+      <link>https://example.com/bollywood-finance</link>
+      <description>A popular Bollywood actor has been appointed as the financial literacy ambassador by a major bank.</description>
+      <pubDate>Tue, 06 May 2025 04:00:00 +0000</pubDate>
+    </item>
+  </channel>
+</rss>

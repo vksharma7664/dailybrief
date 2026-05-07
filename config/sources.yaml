@@ -1,0 +1,64 @@
+sources:
+  - id: rbi_notifications
+    type: rss
+    url: https://www.rbi.org.in/notifications_rss.xml
+    category: RBI
+    priority: 1
+    fetch_full_text: true   # follow link, extract PDF/HTML
+
+  - id: rbi_press
+    type: rss
+    url: https://www.rbi.org.in/pressreleases_rss.xml
+    category: RBI
+    priority: 1
+
+  - id: rbi_publications
+    type: rss
+    url: https://www.rbi.org.in/Publication_rss.xml
+    category: RBI
+    priority: 2
+
+  - id: rbi_speeches
+    type: rss
+    url: https://www.rbi.org.in/speeches_rss.xml
+    category: RBI
+    priority: 3
+
+  - id: et_bfsi
+    type: rss
+    url: https://bfsi.economictimes.indiatimes.com/rss/topstories
+    category: Banking
+    priority: 2
+
+  - id: mint_banking
+    type: rss
+    url: https://www.livemint.com/rss/industry
+    category: Banking
+    priority: 2
+
+  - id: npci_press
+    type: html
+    url: https://www.npci.org.in/what-we-do/upi/press-releases
+    parser: html_npci
+    category: UPI
+    priority: 1
+
+  - id: sebi_circulars
+    type: html
+    url: https://www.sebi.gov.in/sebiweb/home/HomeAction.do?doListing=yes&sid=1&ssid=6&smid=0
+    parser: html_sebi
+    category: Markets
+    priority: 2
+
+  - id: irdai_circulars
+    type: html
+    url: https://irdai.gov.in/circulars
+    parser: html_irdai
+    category: Insurance
+    priority: 1
+
+defaults:
+  timeout_seconds: 30
+  retries: 3
+  rate_limit_per_domain: 1.0   # req/sec
+  user_agent: "DailyBrief/1.0 (internal compliance tool)"

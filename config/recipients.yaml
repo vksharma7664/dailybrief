@@ -1,0 +1,12 @@
+email:
+  - name: "Boss"
+    address: boss@company.com
+    format: full        # full | top3_only
+
+whatsapp:
+  - name: "Boss"
+    number: "+91XXXXXXXXXX"
+    enabled: true
+  - name: "Self (testing)"
+    number: "+91YYYYYYYYYY"
+    enabled: true
