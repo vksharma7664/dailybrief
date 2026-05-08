@@ -147,6 +147,50 @@ async def test_first_attempt_bad_second_good(mock_anthropic):
 
 
 # ---------------------------------------------------------------------------
+# API error path: exception → no retry → immediate fallback
+# ---------------------------------------------------------------------------
+
+@pytest.mark.asyncio
+async def test_api_error_falls_back_without_retry(mock_anthropic):
+    """An API exception (e.g. auth error) must NOT trigger a retry attempt —
+    only malformed JSON retries.  Exactly 1 call should be made."""
+    import anthropic as ant
+
+    items = [_make_item(1)]
+    mock_anthropic.messages.create.side_effect = ant.AuthenticationError(
+        message="invalid api key",
+        response=MagicMock(status_code=401, headers={}),
+        body={"error": {"message": "invalid api key"}},
+    )
+
+    summaries = await summarize_batch(items, api_key="bad_key", skip_claude=False)
+
+    # Fell back immediately — only 1 call (no retry on 4xx)
+    assert mock_anthropic.messages.create.call_count == 1
+    assert len(summaries) == 1
+    # Fallback content comes from body
+    assert summaries[0].summary != ""
+
+
+@pytest.mark.asyncio
+async def test_missing_key_produces_fallback_not_crash(mock_anthropic):
+    """Pipeline must not crash when the API key is missing/empty."""
+    import anthropic as ant
+
+    items = [_make_item(i) for i in range(3)]
+    mock_anthropic.messages.create.side_effect = ant.AuthenticationError(
+        message="missing api key",
+        response=MagicMock(status_code=401, headers={}),
+        body={"error": {"message": "missing api key"}},
+    )
+
+    summaries = await summarize_batch(items, api_key="", skip_claude=False)
+
+    assert len(summaries) == 3
+    assert all(s.summary for s in summaries)
+
+
+# ---------------------------------------------------------------------------
 # _fallback_summary helper
 # ---------------------------------------------------------------------------
 

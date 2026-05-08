@@ -85,6 +85,7 @@ async def _summarize_one_batch(
                         )
                         for i, d in enumerate(parsed)
                     ]
+                # Got a response but JSON is malformed — only retry this case
                 logger.warning(
                     "Batch %d attempt %d: malformed JSON from Claude%s",
                     batch_idx,
@@ -94,13 +95,11 @@ async def _summarize_one_batch(
             except CostCapExceeded:
                 raise  # propagate up so the outer loop can fall back cleanly
             except Exception as exc:
-                logger.warning(
-                    "Batch %d attempt %d failed: %s%s",
-                    batch_idx,
-                    attempt + 1,
-                    exc,
-                    " — retrying" if attempt == 0 else " — falling back to RSS",
-                )
+                # API error (auth, network, server) — do NOT retry; fall back immediately.
+                # call_claude() already retried once for transient 5xx/rate-limit errors,
+                # so anything reaching here won't be fixed by another attempt.
+                logger.warning("Batch %d API error: %s — falling back to RSS immediately", batch_idx, exc)
+                break
 
     logger.warning("Batch %d: using fallback RSS descriptions", batch_idx)
     return [_fallback_summary(item) for item in items]
