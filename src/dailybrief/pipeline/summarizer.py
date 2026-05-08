@@ -11,6 +11,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import re
 from pathlib import Path
 
 import anthropic
@@ -42,13 +43,41 @@ def _fallback_summary(item: Item) -> Summary:
     return Summary(summary=text or item.title, category=item.category, relevance_score=5)
 
 
+_CODE_FENCE_RE = re.compile(r"```(?:json)?\s*\n?(.*?)\n?```", re.DOTALL)
+_JSON_ARRAY_RE = re.compile(r"\[.*\]", re.DOTALL)
+
+
+def _extract_json(text: str) -> str:
+    """Return the best JSON candidate from *text*, handling:
+    - Clean JSON arrays (most desired)
+    - ```json ... ``` or ``` ... ``` code fences (Claude's common habit)
+    - JSON embedded inside prose (last resort regex extraction)
+    """
+    text = text.strip()
+    # 1. Code fence
+    m = _CODE_FENCE_RE.search(text)
+    if m:
+        return m.group(1).strip()
+    # 2. Already a bare array
+    if text.startswith("["):
+        return text
+    # 3. Extract first [...] block from prose
+    m = _JSON_ARRAY_RE.search(text)
+    if m:
+        return m.group(0)
+    return text
+
+
 def _parse_response(text: str, n: int) -> list[dict] | None:
+    candidate = _extract_json(text)
     try:
-        data = json.loads(text.strip())
+        data = json.loads(candidate)
         if isinstance(data, list) and len(data) == n:
             return data
     except (json.JSONDecodeError, ValueError):
         pass
+    # Log first 120 chars so we can see what Claude actually returned
+    logger.debug("JSON parse failed. Response head: %r", text[:120])
     return None
 
 

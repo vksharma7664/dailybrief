@@ -12,7 +12,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 from dailybrief.models import Item, Summary
-from dailybrief.pipeline.summarizer import _fallback_summary, summarize_batch
+from dailybrief.pipeline.summarizer import _extract_json, _fallback_summary, summarize_batch
 
 
 def _make_item(n: int, body: str = "Test body content.") -> Item:
@@ -101,6 +101,46 @@ async def test_batch_split_into_groups_of_5(mock_anthropic):
     assert len(summaries) == 7
     # 7 items → 2 batches (5 + 2)
     assert call_count == 2
+
+
+# ---------------------------------------------------------------------------
+# _extract_json: handles code fences and embedded JSON
+# ---------------------------------------------------------------------------
+
+def test_extract_json_bare_array():
+    raw = '[{"summary": "x", "category": "RBI", "relevance_score": 5}]'
+    assert _extract_json(raw) == raw
+
+
+def test_extract_json_strips_json_code_fence():
+    raw = '```json\n[{"summary": "x"}]\n```'
+    assert _extract_json(raw) == '[{"summary": "x"}]'
+
+
+def test_extract_json_strips_plain_code_fence():
+    raw = '```\n[{"summary": "x"}]\n```'
+    assert _extract_json(raw) == '[{"summary": "x"}]'
+
+
+def test_extract_json_finds_array_in_prose():
+    raw = 'Here is the result:\n[{"summary": "x"}]\nHope that helps!'
+    assert _extract_json(raw) == '[{"summary": "x"}]'
+
+
+@pytest.mark.asyncio
+async def test_code_fence_response_is_parsed(mock_anthropic):
+    """Claude returning ```json ... ``` should work end-to-end."""
+    items = [_make_item(1)]
+    payload = '```json\n[{"summary": "Real summary.", "category": "RBI", "relevance_score": 9}]\n```'
+    mock_anthropic.messages.create.return_value.content = [MagicMock(text=payload)]
+    mock_anthropic.messages.create.return_value.usage = MagicMock(input_tokens=50, output_tokens=30)
+
+    summaries = await summarize_batch(items, api_key="fake", skip_claude=False)
+
+    assert summaries[0].summary == "Real summary."
+    assert summaries[0].relevance_score == 9
+    # Only 1 call — no retry needed
+    assert mock_anthropic.messages.create.call_count == 1
 
 
 # ---------------------------------------------------------------------------
