@@ -176,8 +176,9 @@ def filter_items(
     high_priority: list[str],
     medium_priority: list[str],
     exclude_keywords: list[str],
+    window: tuple[datetime, datetime] | None = None,
 ) -> list[Item]:
-    start, end = last_24h_window()
+    start, end = window if window is not None else last_24h_window()
     result: list[Item] = []
 
     for item in items:

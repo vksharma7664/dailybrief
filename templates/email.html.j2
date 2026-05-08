@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Daily Regulatory &amp; Banking Brief</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f0f4f8;font-family:Arial,Helvetica,sans-serif;-webkit-text-size-adjust:100%">
+<table width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#f0f4f8">
+<tr><td align="center" style="padding:20px 10px">
+
+  <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;background:#ffffff;border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,0.08)">
+
+    <!-- ===== HEADER ===== -->
+    <tr>
+      <td bgcolor="#1a365d" style="padding:28px 32px;border-radius:6px 6px 0 0">
+        <h1 style="margin:0;color:#ffffff;font-size:20px;font-weight:700;letter-spacing:-0.3px">
+          Daily Regulatory &amp; Banking Brief
+        </h1>
+        <p style="margin:6px 0 0;color:#90cdf4;font-size:12px">
+          {{ generated_at }} &nbsp;·&nbsp; {{ total_items }} items today
+        </p>
+      </td>
+    </tr>
+
+    <!-- ===== TOP 3 SECTION ===== -->
+    <tr>
+      <td style="padding:24px 32px 8px">
+        <h2 style="margin:0 0 4px;color:#1a365d;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1px">
+          Need to Know
+        </h2>
+        <p style="margin:0 0 16px;color:#718096;font-size:11px">Top 3 items by relevance to your operations</p>
+
+        {% for item in top3 %}
+        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:16px;border-left:4px solid #c53030;background:#fff5f5;border-radius:0 4px 4px 0">
+          <tr>
+            <td style="padding:16px 18px">
+
+              <!-- Badge + title -->
+              <p style="margin:0 0 6px">
+                <span style="display:inline-block;background:#c53030;color:#ffffff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:3px;text-transform:uppercase;letter-spacing:0.5px">
+                  #{{ loop.index }} {{ item.category }}
+                </span>
+              </p>
+              <h3 style="margin:0 0 8px;font-size:14px;font-weight:700;color:#1a202c;line-height:1.4">
+                <a href="{{ item.url }}" style="color:#1a202c;text-decoration:none">{{ item.title }}</a>
+              </h3>
+
+              <!-- Summary -->
+              {% if item.summary %}
+              <p style="margin:0 0 10px;font-size:13px;color:#4a5568;line-height:1.6">{{ item.summary }}</p>
+              {% endif %}
+
+              <!-- Why it matters -->
+              {% if item.why_it_matters %}
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:10px">
+                <tr>
+                  <td style="background:#fffaf0;border-left:3px solid #dd6b20;padding:8px 12px;border-radius:0 3px 3px 0">
+                    <p style="margin:0;font-size:12px;color:#744210;line-height:1.5">
+                      <strong style="color:#c05621">Why it matters:</strong> {{ item.why_it_matters }}
+                    </p>
+                  </td>
+                </tr>
+              </table>
+              {% endif %}
+
+              <!-- Meta -->
+              <p style="margin:0;font-size:11px;color:#a0aec0">
+                {{ item.published_at | datefmt }}
+                &nbsp;·&nbsp; Score {{ item.score | int }}
+                &nbsp;·&nbsp; Relevance {{ item.relevance_score }}/10
+                {% if item.matched_keywords %}
+                &nbsp;·&nbsp; <em>{{ item.matched_keywords | join(', ') }}</em>
+                {% endif %}
+              </p>
+
+            </td>
+          </tr>
+        </table>
+        {% endfor %}
+
+        {% if not top3 %}
+        <p style="color:#718096;font-size:13px;font-style:italic">No items in this run.</p>
+        {% endif %}
+      </td>
+    </tr>
+
+    <!-- ===== REMAINING ITEMS ===== -->
+    {% if remaining_by_category %}
+    <tr>
+      <td style="padding:8px 32px 24px">
+        <h2 style="margin:0 0 16px;color:#2d3748;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1px;border-top:1px solid #e2e8f0;padding-top:16px">
+          Other Developments
+        </h2>
+
+        {% for category, cat_items in remaining_by_category.items() %}
+        <p style="margin:12px 0 6px;font-size:11px;font-weight:700;color:#718096;text-transform:uppercase;letter-spacing:0.8px">{{ category }}</p>
+
+        {% for item in cat_items %}
+        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:8px;border-left:3px solid #cbd5e0;background:#f7fafc;border-radius:0 3px 3px 0">
+          <tr>
+            <td style="padding:10px 14px">
+              <a href="{{ item.url }}" style="color:#2b6cb0;text-decoration:none;font-size:13px;font-weight:600;line-height:1.4">{{ item.title }}</a>
+              {% if item.summary %}
+              <p style="margin:4px 0 0;font-size:12px;color:#4a5568;line-height:1.5">{{ item.summary }}</p>
+              {% endif %}
+              <p style="margin:4px 0 0;font-size:11px;color:#a0aec0">{{ item.published_at | datefmt }}</p>
+            </td>
+          </tr>
+        </table>
+        {% endfor %}
+        {% endfor %}
+
+      </td>
+    </tr>
+    {% endif %}
+
+    <!-- ===== FOOTER ===== -->
+    <tr>
+      <td bgcolor="#f7fafc" style="padding:14px 32px;border-top:1px solid #e2e8f0;border-radius:0 0 6px 6px">
+        <p style="margin:0;font-size:11px;color:#a0aec0;line-height:1.6">
+          Period: {{ date_range_start }} – {{ date_range_end }}<br>
+          Generated {{ generated_at }} &nbsp;·&nbsp; API cost: ₹{{ cost_inr }}
+        </p>
+      </td>
+    </tr>
+
+  </table>
+</td></tr>
+</table>
+</body>
+</html>

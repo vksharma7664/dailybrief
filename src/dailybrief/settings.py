@@ -29,10 +29,18 @@ class EnvSettings(BaseSettings):
     smtp_port: int = 587
     smtp_user: str = ""
     smtp_pass: str = ""
+    smtp_from: str = "brief-bot@company.com"
+    smtp_use_tls: bool = True
     twilio_account_sid: str = ""
     twilio_auth_token: str = ""
     twilio_whatsapp_from: str = ""
     archive_base_url: str = "https://brief.yourco.in"
+    # Run behaviour
+    dry_run: bool = True
+    dry_run_skip_claude: bool = True    # when True + dry_run=True: zero API calls
+    # Cost & call guardrails
+    max_run_cost_inr: float = 50.0
+    max_claude_calls_per_run: int = 15
 
 
 # ---------------------------------------------------------------------------
