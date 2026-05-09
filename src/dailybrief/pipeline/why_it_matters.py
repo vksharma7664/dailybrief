@@ -79,7 +79,7 @@ async def generate_why(
         return {}
 
     if skip_claude:
-        logger.info("Skipping Claude why-it-matters (DRY_RUN_SKIP_CLAUDE=true)")
+        logger.info("Skipping Claude why-it-matters (SKIP_CLAUDE_SUMMARIZATION=true)")
         return {item.id: _DRY_RUN_PLACEHOLDER for item in items}
 
     prompt_template = _load_prompt()

@@ -44,10 +44,7 @@ def render_brief(brief: Brief) -> str:
     for cat in sorted_cats:
         lines += [f"## {cat}", ""]
         for idx, item in enumerate(categories[cat], start=1):
-            # Body is already clean plain text from the fetcher
-            preview = item.body[:300].replace("\n", " ").strip()
-            if len(item.body) > 300:
-                preview += "…"
+            preview = item.body.replace("\n", " ").strip()
 
             # Show matched keywords next to score for debugging
             kw_str = (

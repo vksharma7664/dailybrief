@@ -37,7 +37,8 @@ class EnvSettings(BaseSettings):
     archive_base_url: str = "https://brief.yourco.in"
     # Run behaviour
     dry_run: bool = True
-    dry_run_skip_claude: bool = True    # when True + dry_run=True: zero API calls
+    skip_claude_summarization: bool = True   # body text comes from RSS — no Claude needed
+    skip_why_it_matters: bool = False        # always generate via Claude when API key set
     # Cost & call guardrails
     max_run_cost_inr: float = 50.0
     max_claude_calls_per_run: int = 15

@@ -10,6 +10,7 @@ Pipeline:
 
 CLI flags:
   --dry-run / --no-dry-run      override DRY_RUN env var
+  --skip-dedupe                 bypass SQLite dedupe (useful for testing/backfill)
   --limit N                     cap items processed (cost control)
   --since "06 May 2026 00:00"   override 24-h window start (backfill)
 """
@@ -18,6 +19,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import logging
+import logging.handlers
 import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -29,7 +31,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from .delivery.email import send_email
+from .delivery.email import send_email, send_health_alert
 from .delivery.whatsapp import send_whatsapp
 from .fetchers.html_irdai import IRDAIFetcher
 from .fetchers.html_npci import NPCIFetcher
@@ -65,6 +67,32 @@ _HTML_FETCHER_MAP = {
 }
 
 
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+async def _empty_fetch() -> list:
+    """No-op coroutine — used when no fetcher exists for an HTML source."""
+    return []
+
+
+def _setup_file_logger() -> None:
+    """Add a rotating file handler so prod runs have a persistent log trail."""
+    log_dir = Path("logs")
+    log_dir.mkdir(parents=True, exist_ok=True)
+    handler = logging.handlers.RotatingFileHandler(
+        log_dir / "dailybrief.log",
+        maxBytes=5 * 1024 * 1024,   # 5 MB per file
+        backupCount=14,              # ~2 weeks of daily runs
+        encoding="utf-8",
+    )
+    handler.setFormatter(logging.Formatter(
+        "%(asctime)s %(levelname)-8s %(name)s  %(message)s",
+        datefmt="%Y-%m-%dT%H:%M:%SZ",
+    ))
+    logging.getLogger().addHandler(handler)
+
+
 def _parse_since(s: str) -> tuple[datetime, datetime]:
     try:
         start = datetime.strptime(s, _SINCE_FMT).replace(tzinfo=IST)
@@ -75,7 +103,16 @@ def _parse_since(s: str) -> tuple[datetime, datetime]:
     return start, datetime.now(IST)
 
 
-async def run(dry_run: bool, limit: int | None, since: str | None) -> None:
+# ---------------------------------------------------------------------------
+# Main pipeline
+# ---------------------------------------------------------------------------
+
+async def run(
+    dry_run: bool,
+    limit: int | None,
+    since: str | None,
+    skip_dedupe: bool = False,
+) -> None:
     settings = Settings()
     cost_tracker.reset()
 
@@ -108,19 +145,22 @@ async def run(dry_run: bool, limit: int | None, since: str | None) -> None:
         fetcher_cls = _HTML_FETCHER_MAP.get(source.parser)
         if fetcher_cls is None:
             logger.warning("[%s] Unknown HTML parser: %r — skipping", source.id, source.parser)
-            html_tasks.append(asyncio.coroutine(lambda: [])())
+            html_tasks.append(_empty_fetch())
             continue
         fetcher = fetcher_cls(**common_kwargs)
         html_tasks.append(fetcher.fetch(source.id, source.url, source.category, source.priority))
 
     all_results = await asyncio.gather(*rss_tasks, *html_tasks, return_exceptions=True)
     rss_results = all_results[: len(rss_sources)]
-    html_results = all_results[len(rss_sources) :]
+    html_results = all_results[len(rss_sources):]
 
     all_items = []
+    failed_sources: list[tuple[str, str]] = []   # (source_id, error_msg) — for health alert
+
     for source, result in zip(rss_sources, rss_results):
         if isinstance(result, Exception):
             logger.error("[%s] Fetch error: %s", source.id, result)
+            failed_sources.append((source.id, str(result)))
         else:
             logger.info("[%s] %d items fetched", source.id, len(result))
             all_items.extend(result)
@@ -128,11 +168,26 @@ async def run(dry_run: bool, limit: int | None, since: str | None) -> None:
     for source, result in zip(html_sources, html_results):
         if isinstance(result, Exception):
             logger.error("[%s] HTML fetch error: %s", source.id, result)
+            failed_sources.append((source.id, str(result)))
         else:
             logger.info("[%s] %d items fetched", source.id, len(result))
             all_items.extend(result)
 
     logger.info("Total fetched: %d", len(all_items))
+
+    # --- Fail-closed: health alert on any source failure ---
+    if failed_sources:
+        logger.warning("%d source(s) failed — sending health alert", len(failed_sources))
+        send_health_alert(
+            failed_sources,
+            recipients=[r["address"] for r in settings.email_recipients],
+            smtp_host=settings.env.smtp_host,
+            smtp_port=settings.env.smtp_port,
+            smtp_user=settings.env.smtp_user,
+            smtp_pass=settings.env.smtp_pass,
+            smtp_from=settings.env.smtp_from,
+            smtp_use_tls=settings.env.smtp_use_tls,
+        )
 
     # --- Full-text enrichment for RBI notification links (PDFs / HTML) ---
     full_text_items = [
@@ -148,10 +203,18 @@ async def run(dry_run: bool, limit: int | None, since: str | None) -> None:
         )
 
     # --- Dedupe (SQLite content-hash) ---
-    db_path = Path("data/seen_dryrun.db" if dry_run else "data/seen.db")
-    with DedupeStore(db_path) as store:
-        new_items = store.filter_new(all_items)
-    logger.info("After dedupe: %d new items", len(new_items))
+    if skip_dedupe:
+        logger.warning(
+            "--skip-dedupe: bypassing SQLite deduplication — all %d fetched items "
+            "will be processed; nothing will be marked as seen this run",
+            len(all_items),
+        )
+        new_items = all_items
+    else:
+        db_path = Path("data/seen_dryrun.db" if dry_run else "data/seen.db")
+        with DedupeStore(db_path) as store:
+            new_items = store.filter_new(all_items)
+        logger.info("After dedupe: %d new items", len(new_items))
 
     # --- Filter ---
     window = _parse_since(since) if since else None
@@ -175,7 +238,8 @@ async def run(dry_run: bool, limit: int | None, since: str | None) -> None:
         logger.info("--limit %d: processing %d of %d items", limit, len(items), len(deduped))
 
     # --- Preflight cost estimate ---
-    skip_claude = dry_run and settings.env.dry_run_skip_claude
+    skip_claude = settings.env.skip_claude_summarization
+    skip_why   = settings.env.skip_why_it_matters
     if not skip_claude and items:
         n_calls, est_cost = cost_tracker.preflight(len(items))
         cap = cost_tracker.max_cost_inr
@@ -189,7 +253,7 @@ async def run(dry_run: bool, limit: int | None, since: str | None) -> None:
                 est_cost, cap,
             )
     elif skip_claude:
-        logger.info("Skipping Claude (DRY_RUN_SKIP_CLAUDE=true) — estimated cost: ₹0")
+        logger.info("Skipping Claude (SKIP_CLAUDE_SUMMARIZATION=true) — estimated cost: ₹0")
 
     # --- Summarize ---
     api_key = settings.env.anthropic_api_key
@@ -204,7 +268,7 @@ async def run(dry_run: bool, limit: int | None, since: str | None) -> None:
     logger.info("Top 3: %s", [i.title[:50] for i in top3])
 
     # --- Why it matters ---
-    why_map = await generate_why(top3, api_key=api_key, skip_claude=skip_claude)
+    why_map = await generate_why(top3, api_key=api_key, skip_claude=skip_why)
     for item in top3:
         item.why_it_matters = why_map.get(item.id, "")
 
@@ -226,7 +290,7 @@ async def run(dry_run: bool, limit: int | None, since: str | None) -> None:
 
     # --- Email delivery ---
     recipients = [r["address"] for r in settings.email_recipients]
-    send_email(
+    _ok, archive_path = send_email(
         html=html_content,
         plain_text=plain_text,
         subject=subject,
@@ -240,12 +304,18 @@ async def run(dry_run: bool, limit: int | None, since: str | None) -> None:
         smtp_use_tls=settings.env.smtp_use_tls,
     )
 
+    # Build the archive URL from the file path + configured base URL
+    archive_url = (
+        f"{settings.env.archive_base_url.rstrip('/')}/{archive_path.name}"
+        if archive_path and settings.env.archive_base_url
+        else ""
+    )
+
     # --- WhatsApp delivery ---
     wa_recipients = [
         r["number"] for r in settings.whatsapp_recipients if r.get("enabled", True)
     ]
     if wa_recipients:
-        archive_url = ""
         wa_message = render_whatsapp(brief, archive_url=archive_url)
         send_whatsapp(
             message=wa_message,
@@ -272,8 +342,13 @@ async def run(dry_run: bool, limit: int | None, since: str | None) -> None:
         logger.info("No Claude API calls made this run (cost: ₹0.00)")
 
 
+# ---------------------------------------------------------------------------
+# Entry point
+# ---------------------------------------------------------------------------
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Daily regulatory & banking brief")
+
     dry_group = parser.add_mutually_exclusive_group()
     dry_group.add_argument(
         "--dry-run",
@@ -287,6 +362,16 @@ def main() -> None:
         dest="dry_run",
         action="store_false",
         help="Actually send via SMTP (overrides DRY_RUN env)",
+    )
+    parser.add_argument(
+        "--skip-dedupe",
+        action="store_true",
+        default=False,
+        help=(
+            "Bypass SQLite deduplication — every fetched item is processed regardless "
+            "of whether it was seen before. Nothing is marked seen this run. "
+            "Useful for testing, backfill, and force-resends."
+        ),
     )
     parser.add_argument(
         "--limit",
@@ -307,7 +392,16 @@ def main() -> None:
         import os
         args.dry_run = os.getenv("DRY_RUN", "true").lower() != "false"
 
-    asyncio.run(run(dry_run=args.dry_run, limit=args.limit, since=args.since))
+    _setup_file_logger()
+
+    asyncio.run(
+        run(
+            dry_run=args.dry_run,
+            limit=args.limit,
+            since=args.since,
+            skip_dedupe=args.skip_dedupe,
+        )
+    )
 
 
 if __name__ == "__main__":

@@ -148,7 +148,7 @@ async def summarize_batch(
         return []
 
     if skip_claude:
-        logger.info("Skipping Claude summarization (DRY_RUN_SKIP_CLAUDE=true)")
+        logger.info("Skipping Claude summarization (SKIP_CLAUDE_SUMMARIZATION=true)")
         return [_fallback_summary(item) for item in items]
 
     prompt = _load_prompt()

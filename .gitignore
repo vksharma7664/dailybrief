@@ -3,7 +3,9 @@ __pycache__/
 *.pyc
 .venv/
 data/seen.db
+data/seen_dryrun.db
 data/archive/
+logs/
 .pytest_cache/
 .ruff_cache/
 *.log

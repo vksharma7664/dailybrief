@@ -20,6 +20,9 @@ logger = logging.getLogger(__name__)
 
 BASE_URL = "https://irdai.gov.in"
 _DATE_RE = re.compile(r"\b(\d{2})[/-](\d{2})[/-](\d{4})\b")
+# Liferay portal navigation params — these are sort/pagination links, not documents
+_NAV_HREF_RE = re.compile(r"p_p_id=|orderByCol=|doListing=|p_p_lifecycle=")
+_SKIP_TITLES = {"short description", "sub title", "last updated", "documents", "view all"}
 
 
 def _parse_date(text: str) -> datetime:
@@ -55,11 +58,11 @@ class IRDAIFetcher(HTMLFetcher):
                 continue
 
             href = link.attributes.get("href", "").strip()
-            if not href or href == "#":
+            if not href or href == "#" or _NAV_HREF_RE.search(href):
                 continue
 
             title = link.text(strip=True).strip()
-            if not title or len(title) < 5:
+            if not title or len(title) < 5 or title.lower() in _SKIP_TITLES:
                 continue
 
             full_url = href if href.startswith("http") else urljoin(BASE_URL, href)
