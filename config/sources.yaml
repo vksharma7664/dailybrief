@@ -36,6 +36,36 @@ sources:
     category: Banking
     priority: 2
 
+  - id: mint_money
+    type: rss
+    url: https://www.livemint.com/rss/money
+    category: Banking
+    priority: 2
+
+  - id: hbl_money_banking            # Hindu BusinessLine — Money & Banking desk
+    type: rss
+    url: https://www.thehindubusinessline.com/money-and-banking/feeder/default.rss
+    category: Banking
+    priority: 2
+
+  - id: hbl_markets                  # Hindu BusinessLine — Markets desk
+    type: rss
+    url: https://www.thehindubusinessline.com/markets/feeder/default.rss
+    category: Markets
+    priority: 2
+
+  - id: the_ken_finance              # The Ken — long-form finance analysis
+    type: rss
+    url: https://the-ken.com/feed/
+    category: Banking
+    priority: 3
+
+  - id: inc42_fintech                # Inc42 — fintech / payments / UPI startups
+    type: rss
+    url: https://inc42.com/feed/
+    category: Fintech
+    priority: 2
+
   - id: npci_press
     type: html
     url: https://www.npci.org.in/what-we-do/upi/press-releases

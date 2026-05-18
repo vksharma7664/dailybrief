@@ -11,7 +11,7 @@ from ..models import Brief, Item
 
 IST = timezone(timedelta(hours=5, minutes=30))
 
-_CAT_ORDER = {"RBI": 1, "UPI": 2, "Insurance": 3, "Markets": 4, "Banking": 5}
+_CAT_ORDER = {"RBI": 1, "UPI": 2, "Fintech": 3, "Insurance": 4, "Markets": 5, "Banking": 6}
 
 
 def _fmt_ist(dt: datetime) -> str:

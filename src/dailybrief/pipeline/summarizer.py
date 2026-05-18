@@ -21,7 +21,7 @@ from .cost_tracker import CostCapExceeded, call_claude
 
 logger = logging.getLogger(__name__)
 
-MODEL = "claude-sonnet-4-6"
+MODEL = "claude-sonnet-4-7-20250219"   # per CLAUDE.md spec
 BATCH_SIZE = 5
 MAX_TOKENS = 800
 MAX_PARALLEL_BATCHES = 3

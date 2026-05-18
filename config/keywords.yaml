@@ -1,9 +1,42 @@
-high_priority:   # boost score by 10 per match
-  # PPI / prepaid instruments
+high_priority:   # boost score by +10 per match
+  # ── Regulatory actions (always urgent) ──────────────────────────────
+  - monetary penalty
+  - penalty imposed
+  - enforcement action
+  - show cause notice
+  - cancellation of licence
+  - licence cancelled
+  - bank licence
+  - banking licence
+  - prompt corrective action
+  - PCA framework
+
+  # ── RBI circulars / notifications ───────────────────────────────────
+  - RBI circular
+  - RBI notification
+  - RBI directions
+  - master direction
+  - master circular
+  - A.P. (DIR Series)
+  - DPSS circular
+
+  # ── Payments & PPI (core to Transcorp business) ─────────────────────
   - PPI
   - prepaid payment instrument
   - prepaid instrument
-  # AD licence / foreign exchange
+  - payment aggregator
+  - payment gateway
+  - tokenisation
+  - tokenization
+  - NACH
+  - NETC
+  - FASTag
+  - UPI circular
+  - UPI directive
+  - Bharat BillPay
+  - BBPS
+
+  # ── Foreign Exchange (core to Transcorp business) ───────────────────
   - AD II
   - AD-II
   - Authorised Dealer
@@ -11,28 +44,142 @@ high_priority:   # boost score by 10 per match
   - Authorised Persons
   - FEMA
   - Foreign Exchange Management
-  - A.P. (DIR Series)
-  - principal-agent model
   - foreign exchange facility
-  # KYC
+  - outward remittance
+  - inward remittance
+  - LRS limit
+  - Liberalised Remittance Scheme
+
+  # ── KYC / AML / Compliance ──────────────────────────────────────────
   - CKYC
   - central KYC
-  # Other business-critical
-  - FED segregation
-  - MCA
-  - sole proprietor onboarding
-  - authorised dealer category II
+  - KYC directions
+  - AML guidelines
+  - anti-money laundering
+  - CFT
+  - PMLA
+  - suspicious transaction
 
-medium_priority: # boost by 5 per match
+  # ── Digital currency / CBDC ─────────────────────────────────────────
+  - CBDC
+  - digital rupee
+  - e-rupee
+  - central bank digital currency
+
+  # ── Credit & Lending ────────────────────────────────────────────────
+  - co-lending
+  - co-origination
+  - priority sector lending
+  - PSL
+  - NPA norms
+  - NPA classification
+  - loan restructuring
+  - SARFAESI
+
+  # ── Other business-critical ─────────────────────────────────────────
+  - FED segregation
+  - MCA circular
+  - sole proprietor onboarding
+  - account aggregator
+  - NBFC directions
+  - NBFC registration
+  - principal-agent model
+  - business correspondent
+  - BC network
+
+medium_priority: # boost score by +5 per match
+  # ── Regulators ──────────────────────────────────────────────────────
   - UPI
+  - NPCI
+  - SEBI
+  - IRDAI
+  - PFRDA
+  - RBI governor
+  - RBI MPC
+  - monetary policy
+
+  # ── KYC & Onboarding ────────────────────────────────────────────────
   - KYC
   - eKYC
   - video KYC
+  - Aadhaar
+  - DigiLocker
   - onboarding
-  - partner integration
-  - IRDAI
-  - HyperVerge
+  - customer due diligence
+  - CDD
 
-exclude:         # drop items matching these
+  # ── Banking sector ──────────────────────────────────────────────────
+  - SBI
+  - HDFC Bank
+  - ICICI Bank
+  - Axis Bank
+  - Yes Bank
+  - credit growth
+  - deposit rate
+  - repo rate
+  - CRAR
+  - capital adequacy
+  - Basel
+
+  # ── Fintech / Payments ecosystem ────────────────────────────────────
+  - fintech
+  - insurtech
+  - regtech
+  - UPI Lite
+  - credit on UPI
+  - RuPay
+  - IMPS
+  - RTGS
+  - partner integration
+  - API integration
+
+  # ── Insurance ───────────────────────────────────────────────────────
+  - IRDAI circular
+  - insurance regulation
+  - Bima Sugam
+  - reinsurance
+
+  # ── Markets ─────────────────────────────────────────────────────────
+  - SEBI circular
+  - SEBI regulation
+  - mutual fund regulation
+  - IPO regulation
+  - insider trading
+  - FPI
+
+  # ── Misc relevant ───────────────────────────────────────────────────
+  - HyperVerge
+  - credit card
+  - debit card
+  - overdraft
+  - NRI banking
+
+exclude:         # drop items matching any of these (word-boundary match)
+  # ── Entertainment / Sports ──────────────────────────────────────────
   - cricket
+  - IPL
   - bollywood
+  - movies
+  - celebrity
+  - entertainment
+  - sports
+  - football
+  - Olympics
+
+  # ── Politics (non-finance) ──────────────────────────────────────────
+  - election result
+  - BJP
+  - Congress party
+  - swearing-in
+  - cabinet minister
+  - assembly election
+
+  # ── Commodity / Agriculture (low relevance) ─────────────────────────
+  - sugar production
+  - wheat procurement
+  - monsoon forecast
+  - crop yield
+
+  # ── Real estate classifieds ─────────────────────────────────────────
+  - property launch
+  - apartment bookings
