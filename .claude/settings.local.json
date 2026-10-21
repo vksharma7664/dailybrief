@@ -10,7 +10,14 @@
       "Bash(powershell.exe -Command \"Get-Command python -ErrorAction SilentlyContinue | Select-Object Source\")",
       "Bash(powershell.exe:*)",
       "Bash(export PATH=\"$HOME/.local/bin:$PATH\")",
-      "Bash(uv run:*)"
+      "Bash(uv run:*)",
+      "WebFetch(domain:www.npci.org.in)",
+      "WebFetch(domain:www.sebi.gov.in)",
+      "WebFetch(domain:irdai.gov.in)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git remote *)",
+      "Bash(git push *)"
     ]
   }
 }
